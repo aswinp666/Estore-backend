@@ -5,14 +5,14 @@ const Invoice = require("../models/Invoice");
 // Save invoice to database
 router.post("/save", async (req, res) => {
   try {
-    const { billingData, cartItems, shippingFee, grandTotal } = req.body;
+    const { billingData, cartItems, shippingFee, grandTotal, paymentStatus } = req.body;
     
     const newInvoice = new Invoice({
       billingData,
       cartItems,
       shippingFee,
       grandTotal,
-      paymentStatus: "Paid"
+      paymentStatus: paymentStatus || "Pending" 
     });
 
     const savedInvoice = await newInvoice.save();

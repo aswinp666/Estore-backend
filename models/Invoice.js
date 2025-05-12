@@ -24,8 +24,8 @@ const invoiceSchema = new mongoose.Schema({
   grandTotal: Number,
   paymentStatus: {
     type: String,
-    enum: ["Pending", "Paid", "Failed"],
-    default: "Pending", // Set default as "Pending"
+    enum: ["Pending", "Paid", "Failed", "Cash On Delivery"], 
+    default: "Pending",
   },
   createdAt: {
     type: Date,
