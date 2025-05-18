@@ -32,6 +32,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api/invoice", invoiceRoutes); // Mount invoice routes
+app.use("/api/cart", require("./routes/cart"));
+
 
 
 
