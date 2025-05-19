@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Cart = require("../models/Cart");
-const User = require("../models/User"); // Import User model to find user by email
+const User = require("../models/Users"); // Import User model to find user by email
 
 // GET /api/cart?email=user@example.com - Get cart by user email
 router.get("/cart", async (req, res) => {
