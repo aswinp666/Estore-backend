@@ -191,40 +191,4 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-
-// Get user's cart
-router.get('/cart', async (req, res) => {
-  try {
-    const { email } = req.query;
-    const user = await User.findOne({ email });
-    
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    
-    res.status(200).json({ cartItems: user.cartItems || [] });
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching cart", error: err.message });
-  }
-});
-
-// Update user's cart
-router.post('/update-cart', async (req, res) => {
-  try {
-    const { email, cartItems } = req.body;
-    const user = await User.findOne({ email });
-    
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    
-    user.cartItems = cartItems;
-    await user.save();
-    
-    res.status(200).json({ message: "Cart updated successfully" });
-  } catch (err) {
-    res.status(500).json({ message: "Error updating cart", error: err.message });
-  }
-});
-
 module.exports = router;
