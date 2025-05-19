@@ -9,6 +9,8 @@ const productRoutes = require("./routes/productRoutes");
 const paymentRoutes = require("./routes/payment");
 const invoiceRoutes = require("./routes/invoice"); // ✅ Invoice routes
 const User = require("./models/Users");
+const cartRoutes = require("./routes/cart");
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +34,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api/invoice", invoiceRoutes); // Mount invoice routes
+app.use("/api", cartRoutes);
+
 
 
 
