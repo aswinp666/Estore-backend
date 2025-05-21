@@ -26,6 +26,11 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Image URL is required'],
   },
+   options: {
+    type: Map,
+    of: [String], // key-value pairs like { Color: ["Red", "Black"], RAM: ["8GB", "12GB"] }
+    default: {},
+  },
 });
 
 // ✅ This avoids the OverwriteModelError

@@ -7,18 +7,35 @@ const upload = multer({ storage });
 
 // Add new product
 router.post('/', upload.single('image'), async (req, res) => {
-    try {
-      const { name, description, price, category } = req.body;
-      const imageUrl = req.file.path;
-  
-      const newProduct = await Product.create({ name, description, price, category, imageUrl });
-      res.status(201).json(newProduct);
-    } catch (err) {
-      console.error("❌ Failed to add product:", err); // <-- Add this
-      res.status(500).json({ error: 'Failed to add product' });
+  try {
+    const { name, description, price, category } = req.body;
+    const imageUrl = req.file.path;
+
+    // Parse options if sent
+    let options = {};
+    if (req.body.options) {
+      try {
+        options = JSON.parse(req.body.options);
+      } catch (e) {
+        return res.status(400).json({ error: 'Invalid options format' });
+      }
     }
-  });
-  
+
+    const newProduct = await Product.create({
+      name,
+      description,
+      price,
+      category,
+      imageUrl,
+      options,
+    });
+
+    res.status(201).json(newProduct);
+  } catch (err) {
+    console.error("❌ Failed to add product:", err);
+    res.status(500).json({ error: 'Failed to add product' });
+  }
+});
 
 // Get products (optional category filter)
 router.get('/', async (req, res) => {
@@ -44,19 +61,30 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-
 // Update product
 router.put('/:id', upload.single('image'), async (req, res) => {
   try {
     const { name, description, price, category } = req.body;
     const imageUrl = req.file ? req.file.path : undefined;
 
+    // Parse options if sent
+    let options;
+    if (req.body.options) {
+      try {
+        options = JSON.parse(req.body.options);
+      } catch (e) {
+        return res.status(400).json({ error: 'Invalid options format' });
+      }
+    }
+
     const update = { name, description, price, category };
     if (imageUrl) update.imageUrl = imageUrl;
+    if (options) update.options = options;
 
     const updatedProduct = await Product.findByIdAndUpdate(req.params.id, update, { new: true });
     res.json(updatedProduct);
   } catch (err) {
+    console.error("❌ Failed to update product:", err);
     res.status(500).json({ error: 'Failed to update product' });
   }
 });
