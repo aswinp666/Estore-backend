@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Invoice = require("../models/Invoice"); // Ensure this path is correct
+const authenticateToken = require("../middleware/authenticateToken"); // Ensure this path is correct
 
 // Save invoice to database - MODIFIED
 router.post("/save", async (req, res) => {
@@ -66,6 +67,20 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch invoices." });
   }
 });
+
+//--NEW ROUTE: Get Orders for the currently logged-in user---
+router.get("/my-orders", authenticateToken, async (req, res) => {
+  try {
+    const userOrders = await Invoice.find({ 'billingData.email': req.user.email })
+      .sort({ createdAt: -1 })
+      .lean();
+      res.json(userOrders); //send the array of orders
+  }catch (error) {
+    console.error("Fetch user orders error:", error);
+    res.status(500).json({ error: "Failed to fetch user orders." });
+  }
+});
+//End of NEW ROUTE
 
 // Get a single invoice by ID - NEW or ensure it exists and is correct
 router.get("/:id", async (req, res) => {

@@ -4,11 +4,13 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { OAuth2Client } = require('google-auth-library');
 const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
 
 // 🔒 Hardcoded credentials (use ONLY in dev/test, not production)
 const GOOGLE_CLIENT_ID = '304953165466-lgjotkqf05kqkliatr0mh0ba0p2pu4n9.apps.googleusercontent.com';
 const EMAIL_USER = 'dredwardkenway@gmail.com';
 const EMAIL_PASS = 'dczw shov zusu fbwo'; // Gmail App Password
+const JWT_SECRET = '2a441e973877c97407ecec0aaee9589b99520bb42b8ff30acb24a28a4adbee064a47171d1ae98802a16a1fa8e21f25ba0fc6f8c2b81b95f31df8a2c297e0bd0d'; // Replace with your actual JWT secret
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
@@ -31,11 +33,11 @@ const transporter = nodemailer.createTransport({
 
 // Google OAuth login
 router.post('/google', async (req, res) => {
-  const { token } = req.body;
+  const { token: googleToken } = req.body;
 
   try {
     const ticket = await client.verifyIdToken({
-      idToken: token,
+      idToken: googleToken,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     const payload = ticket.getPayload();
@@ -53,8 +55,11 @@ router.post('/google', async (req, res) => {
       await user.save();
     }
 
-    res.status(200).json({ message: 'User authenticated successfully', user });
+    //Issue JWT 
+    const appToken = jwt.sign({ userId: user._id, email: user.email}, JWT_SECRET, { expiresIn: '24h'});
+    res.status(200).json({ message: 'User authenticated successfully', user, token: appToken });
   } catch (error) {
+    console.error("Google Auth Error:", error);
     res.status(400).json({ message: 'Invalid Google token' });
   }
 });
@@ -78,7 +83,9 @@ router.post('/signup', async (req, res) => {
     });
 
     await user.save();
-    res.status(200).json({ message: "User created successfully", user });
+    // Issue JWT
+    const appToken = jwt.sign({ userId: user._id, email: user.email }, JWT_SECRET, { expiresIn: '24h' });
+    res.status(200).json({ message: "User created successfully", user, token: appToken });
   } catch (err) {
     res.status(500).json({ message: "Error during signup", error: err.message });
   }
@@ -101,7 +108,9 @@ router.post('/signin', async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    res.status(200).json({ message: "User signed in successfully", user });
+    // Issue JWT
+    const appToken = jwt.sign({ userId: user._id, email: user.email }, JWT_SECRET, { expiresIn: '24h' });
+    res.status(200).json({ message: "User signed in successfully", user, token: appToken });
   } catch (err) {
     res.status(500).json({ message: "Error during signin", error: err.message });
   }
