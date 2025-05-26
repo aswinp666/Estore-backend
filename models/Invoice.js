@@ -14,7 +14,7 @@ const invoiceSchema = new mongoose.Schema({
   },
  cartItems: [
   {
-    _id: mongoose.Schema.Types.ObjectId, // Unique ID for the cart item instance
+    // _id: mongoose.Schema.Types.ObjectId, // Unique ID for the cart item instance
     name: String,
     quantity: Number,
     price: Number,
