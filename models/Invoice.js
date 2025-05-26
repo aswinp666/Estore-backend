@@ -12,17 +12,26 @@ const invoiceSchema = new mongoose.Schema({
     phone: String,
     email: String,
   },
-  cartItems: [
-    {
-      // It's good practice to define the structure of objects in an array
-      _id: mongoose.Schema.Types.ObjectId, // Or String, if you are not using Mongoose ObjectIds for products
-      name: String,
-      quantity: Number,
-      price: Number, // Original price
-      discountedPrice: Number, // Price after discount, if any
-      // productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' } // Optional: Reference to product document
+ cartItems: [
+  {
+    _id: mongoose.Schema.Types.ObjectId, // Unique ID for the cart item instance
+    name: String,
+    quantity: Number,
+    price: Number,
+    discountedPrice: Number,
+    image: String, // Assuming 'image' from frontend maps to 'imageUrl' or similar
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' }, // Reference to the actual product
+
+    // New fields for return tracking
+    returnStatus: {
+      type: String,
+      enum: ["NotReturned", "ReturnRequested", "Returned", "ReturnRejected"],
+      default: "NotReturned"
     },
-  ],
+    returnReason: String,
+    returnDetails: String
+  },
+],
   shippingFee: Number,
   grandTotal: Number,
   paymentStatus: {

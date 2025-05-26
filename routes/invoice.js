@@ -134,4 +134,56 @@ router.put("/:id/status", async (req, res) => {
   }
 });
 
+// --- NEW ROUTE: Request a return for a specific item in an order ---
+router.put("/order/:orderId/item/:itemId/return", authenticateToken, async (req, res) => {
+  try {
+    const { orderId, itemId } = req.params;
+    const { reason, details } = req.body; // Reason and details from the frontend
+
+    if (!reason) {
+      return res.status(400).json({ error: "Return reason is required." });
+    }
+
+    const order = await Invoice.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ error: "Order not found." });
+    }
+
+    // Optional: Verify if the order belongs to the authenticated user
+    if (order.billingData.email !== req.user.email) {
+        // This check assumes req.user.email is populated by authenticateToken
+        // Adjust if admin users have different authorization logic
+        // return res.status(403).json({ error: "Forbidden: You cannot modify this order." });
+    }
+
+    const itemToReturn = order.cartItems.find(item => item._id.toString() === itemId);
+
+    if (!itemToReturn) {
+      return res.status(404).json({ error: "Item not found in this order." });
+    }
+
+    // Check if the item can be returned (e.g., not already returned/requested)
+    if (itemToReturn.returnStatus !== "NotReturned") {
+        return res.status(400).json({ error: `Item return status is already '${itemToReturn.returnStatus}'.` });
+    }
+
+    itemToReturn.returnStatus = "ReturnRequested"; // Or "Returned" if auto-approved
+    itemToReturn.returnReason = reason;
+    itemToReturn.returnDetails = details || ""; // Optional details
+
+    await order.save();
+
+    // Optionally: Send notification email to admin about the return request
+
+    res.json({ message: "Return requested successfully.", order }); // Send back the updated order
+
+  } catch (error) {
+    console.error("Return request error:", error);
+    if (error.name === 'CastError') {
+        return res.status(400).json({ error: "Invalid Order ID or Item ID format." });
+    }
+    res.status(500).json({ error: "Failed to process return request." });
+  }
+});
+
 module.exports = router;
