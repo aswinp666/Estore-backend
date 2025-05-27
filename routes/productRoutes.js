@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const multer = require('multer');
 const { storage } = require('../utils/cloudinary');
 const upload = multer({ storage });
+const authenticateToken = require("../middleware/authenticateToken"); // Assuming you have this middleware
 
 // Add new product
 router.post('/', upload.single('image'), async (req, res) => {
@@ -98,5 +99,50 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete product' });
   }
 });
+
+// NEW ROUTE: POST /api/products/:id/review - Submit a review for a product
+router.post('/:id/review', authenticateToken, async (req, res) => {
+  try {
+    const { rating, comment } = req.body;
+    const productId = req.params.id;
+    const userId = req.user.id; // Assuming authenticateToken adds user info to req.user
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Rating must be a number between 1 and 5.' });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found.' });
+    }
+
+    // Check if the user has already reviewed this product
+    const alreadyReviewedIndex = product.ratings.findIndex(
+      (r) => r.userId.toString() === userId.toString()
+    );
+
+    if (alreadyReviewedIndex > -1) {
+      // Update existing review
+      product.ratings[alreadyReviewedIndex].rating = rating;
+      product.ratings[alreadyReviewedIndex].comment = comment || '';
+      product.ratings[alreadyReviewedIndex].createdAt = Date.now(); // Update timestamp
+    } else {
+      // Add new review
+      product.ratings.push({ userId, rating, comment: comment || '' });
+    }
+
+    await product.save(); // The pre-save hook will update averageRating and numOfReviews
+
+    // You might want to return the updated product or just a success message
+    res.status(200).json({ message: 'Review added/updated successfully.', product });
+  } catch (err) {
+    console.error("❌ Failed to add/update review:", err);
+    if (err.name === 'CastError') {
+      return res.status(400).json({ error: 'Invalid product ID format.' });
+    }
+    res.status(500).json({ error: 'Failed to add/update review.' });
+  }
+});
+
 
 module.exports = router;
