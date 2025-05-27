@@ -145,4 +145,43 @@ router.post('/:id/review', authenticateToken, async (req, res) => {
 });
 
 
+// NEW ROUTE: GET /api/products/:productId/reviews - Get all reviews for a specific product
+router.get('/:productId/reviews', async (req, res) => { // Change :id to :productId for clarity
+  try {
+    const productId = req.params.productId;
+    // Find the product and populate its ratings (reviews)
+    const product = await Product.findById(productId).populate({
+      path: 'ratings.userId', // Path to the user field within the ratings array
+      select: 'name'         // Only select the 'name' field of the user
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found.' });
+    }
+
+    // Return the ratings array
+    // Map to simplify review object if needed, or directly return product.ratings
+    const reviewsWithUserNames = product.ratings.map(rating => ({
+        _id: rating._id,
+        user: {
+            _id: rating.userId._id,
+            name: rating.userId.name
+        },
+        rating: rating.rating,
+        comment: rating.comment,
+        createdAt: rating.createdAt
+    }));
+
+
+    res.status(200).json(reviewsWithUserNames);
+  } catch (err) {
+    console.error("❌ Failed to fetch reviews for product:", err);
+    if (err.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid product ID format.' });
+    }
+    res.status(500).json({ message: 'Failed to fetch reviews.' });
+  }
+});
+
+
 module.exports = router;
