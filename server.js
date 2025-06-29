@@ -19,7 +19,7 @@ const otpStore = {}; // For OTP storage
 
 // Middleware
 app.use(cors({
-  origin: 'https://estore-frontend-x1sy.vercel.app', // Your frontend URL
+  origin: ['https://estore-frontend-x1sy.vercel.app', 'http://localhost:3039'], // Your frontend URL
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
