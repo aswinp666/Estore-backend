@@ -10,6 +10,8 @@ const paymentRoutes = require("./routes/payment");
 const invoiceRoutes = require("./routes/invoice"); // ✅ Invoice routes
 const User = require("./models/Users");
 const cartRoutes = require("./routes/cart");
+// NEW: Import analytics routes
+const analyticsRoutes = require('./routes/analyticsRoutes'); // Adjust path if necessary
 
 
 const app = express();
@@ -35,6 +37,8 @@ app.use("/api/products", productRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api/invoice", invoiceRoutes); // Mount invoice routes
 app.use("/api", cartRoutes);
+// NEW: Mount analytics routes
+app.use("/api/analytics", analyticsRoutes);
 
 
 
